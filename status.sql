@@ -63,12 +63,12 @@ SELECT DISTINCT
     (SELECT event_type FROM tbl ORDER BY id LIMIT 1) AS event,
     (SELECT len FROM tbl WHERE len IS NOT NULL LIMIT 1) AS pomo_len,
     (SELECT event_type = 'pause' FROM tbl ORDER BY id DESC LIMIT 1) AS paused,
-    CASE WHEN total_seconds >= 0
-        THEN total_seconds ELSE 0
-    END AS time_remaining,
-    CASE WHEN total_seconds < 0
-        THEN ABS(total_seconds) ELSE 0
-    END AS time_exceeded
+    JSON_OBJECT(
+        'hr', ABS(CAST(total_seconds / 24 / 60 % 60 AS INT)),
+        'min', ABS(CAST(total_seconds / 60 % 60 AS INT)),
+        'sec', ABS(CAST(total_seconds % 60 AS INT)),
+        'time_exceeded', CASE WHEN total_seconds < 0 THEN true ELSE false END
+    ) AS time_remaining
 FROM tbl p
 LEFT JOIN seconds_until_target s
 ON p.pomo_id = s.pomo_id
