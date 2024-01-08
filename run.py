@@ -29,12 +29,15 @@ def status():
     db = get_db()
     cur = db.cursor()
     q = get_query('status.sql')
-    res = cur.execute(q).fetchall()[0]
-    keys = [d[0] for d in cur.description]
-    output = dict(zip(keys, res))
-    output['time_remaining'] = json.loads(output['time_remaining'])
+    res = cur.execute(q).fetchall()
+    if res:
+        keys = [d[0] for d in cur.description]
+        output = dict(zip(keys, res[0]))
+        output['time_remaining'] = json.loads(output['time_remaining'])
 
-    return output
+        return output
+    else:
+        return {}
 
 
 @app.route('/start')

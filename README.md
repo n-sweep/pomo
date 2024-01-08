@@ -9,9 +9,13 @@ curl -s localhost:5000/status
 ```
 
 ```sh
+curl -s localhost:5000/status | jq -r .time_remaining.time_exceeded
+```
+
+```sh
 curl -s localhost:5000/status | jq -r '.time_remaining
-| if .time_exceeded
-then ":anger-symbol:-\(.min):\(.sec)"
-else ":tomato:\(.min):\(.sec)" end'\
+| if .time_exceeded > 0
+then "[:anger-symbol:-\(.min):\(.sec)]"
+else "[:tomato:\(.min):\(.sec)]" end'\
 | emoji -m
 ```

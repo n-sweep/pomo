@@ -28,7 +28,9 @@ pause_ids AS (
 jd_pause AS (
     SELECT
         pomo_id,
-        SUM(JULIANDAY(unpause) - JULIANDAY(timestamp)) AS jd_pause_len
+        SUM(
+            JULIANDAY(IFNULL(unpause, CURRENT_TIMESTAMP)) - JULIANDAY(timestamp)
+        ) AS jd_pause_len
     FROM (
         SELECT *,
             LEAD(timestamp) OVER (PARTITION BY pause_id ORDER BY timestamp) AS unpause
@@ -56,20 +58,31 @@ seconds_until_target AS (
     LEFT JOIN jd_pause p
     ON t.pomo_id = p.pomo_id
     WHERE event_type in ('pomo', 'break')
+),
+
+time_until_target AS (
+    SELECT
+        pomo_id,
+        ABS(CAST(total_seconds / 24 / 60 % 60 AS INT)) AS hr,
+        ABS(CAST(total_seconds / 60 % 60 AS INT)) AS min,
+        ABS(CAST(total_seconds % 60 AS INT)) AS sec,
+        CASE WHEN total_seconds < 0 THEN 1 ELSE 0 END AS exceeded
+    FROM
+        seconds_until_target
 )
 
 SELECT DISTINCT
     p.pomo_id,
-    (SELECT event_type FROM tbl ORDER BY id LIMIT 1) AS event,
+    (SELECT event_type FROM tbl ORDER BY id DESC LIMIT 1) AS event,
     (SELECT len FROM tbl WHERE len IS NOT NULL LIMIT 1) AS pomo_len,
     (SELECT event_type = 'pause' FROM tbl ORDER BY id DESC LIMIT 1) AS paused,
     JSON_OBJECT(
-        'hr', ABS(CAST(total_seconds / 24 / 60 % 60 AS INT)),
-        'min', ABS(CAST(total_seconds / 60 % 60 AS INT)),
-        'sec', ABS(CAST(total_seconds % 60 AS INT)),
-        'time_exceeded', CASE WHEN total_seconds < 0 THEN true ELSE false END
+        'hr', PRINTF('%02d', hr),
+        'min', PRINTF('%02d', min),
+        'sec', PRINTF('%02d', sec),
+        'time_exceeded', exceeded
     ) AS time_remaining
 FROM tbl p
-LEFT JOIN seconds_until_target s
-ON p.pomo_id = s.pomo_id
+LEFT JOIN time_until_target t
+ON p.pomo_id = t.pomo_id
 WHERE p.pomo_id = (SELECT MAX(pomo_id) FROM tbl)
