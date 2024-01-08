@@ -1,4 +1,5 @@
 import json
+import socket
 import sqlite3
 from flask import Flask, g
 
@@ -76,4 +77,8 @@ def show():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    host_name = socket.getfqdn()
+    ip = socket.gethostbyname(host_name)
+    port = 7666
+
+    app.run(host=ip, port=port)
