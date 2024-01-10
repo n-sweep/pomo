@@ -6,14 +6,16 @@ import sqlite3
 from flask import Flask, g
 
 app = Flask(__name__)
+print()
 
 log_file = os.path.expanduser('~/tomato.log')
 db_file = os.path.expanduser('~/pomo.db')
+
 logging.basicConfig(filename=log_file, level=logging.INFO)
 
 
 def get_query(name):
-    with open(name, 'r') as f:
+    with open(os.path.join(os.path.dirname(__file__), name), 'r') as f:
         return f.read()
 
 
