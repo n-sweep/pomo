@@ -1,9 +1,13 @@
 import json
+import logging
 import socket
 import sqlite3
 from flask import Flask, g
 
 app = Flask(__name__)
+
+log_file = os.path.expanduser('~/pomo/tomato.log')
+logging.basicConfig(filename=log_file, level=logging.INFO)
 
 
 def get_db():
