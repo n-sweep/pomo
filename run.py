@@ -8,8 +8,8 @@ from flask import Flask, g
 app = Flask(__name__)
 print()
 
-log_file = os.path.expanduser('~/tomato.log')
-db_file = os.path.expanduser('~/pomo.db')
+log_file = os.path.expanduser('~/.data/tomato.log')
+db_file = os.path.expanduser('~/.data/pomo.db')
 
 logging.basicConfig(filename=log_file, level=logging.INFO)
 
