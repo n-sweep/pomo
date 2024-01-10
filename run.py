@@ -84,4 +84,4 @@ if __name__ == "__main__":
     host_name = socket.getfqdn()
     ip = socket.gethostbyname(host_name)
 
-    app.run(host=ip)
+    app.run(host=ip, debug=True)
