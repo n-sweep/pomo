@@ -79,6 +79,5 @@ def show():
 if __name__ == "__main__":
     host_name = socket.getfqdn()
     ip = socket.gethostbyname(host_name)
-    port = 7666
 
-    app.run(host=ip, port=port)
+    app.run(host=ip)
