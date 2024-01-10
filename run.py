@@ -7,15 +7,9 @@ from flask import Flask, g
 
 app = Flask(__name__)
 
-log_file = os.path.expanduser('~/pomo/tomato.log')
+log_file = os.path.expanduser('~/tomato.log')
+db_file = os.path.expanduser('~/pomo.db')
 logging.basicConfig(filename=log_file, level=logging.INFO)
-
-
-def get_db():
-    db = getattr(g, '_database', None)
-    if db is None:
-        db = g._database = sqlite3.connect('pomo.db')
-    return db
 
 
 def get_query(name):
@@ -23,16 +17,26 @@ def get_query(name):
         return f.read()
 
 
-def insert_event(event):
-    db = get_db()
+def get_db():
+    db = sqlite3.connect(db_file)
     cur = db.cursor()
+    res = cur.execute("SELECT name FROM sqlite_master WHERE name='pomo'")
+    if not res.fetchall():
+        tq = get_query('table.sql')
+        cur.execute(tq)
+        db.commit()
+    return db, cur
+
+
+def insert_event(event):
+    db, cur = get_db()
     cur.executemany('INSERT INTO pomo (event_type, len) VALUES(?, ?)', [event])
     db.commit()
 
     return '200'
 
 def status():
-    db = get_db()
+    db, cur = get_db()
     cur = db.cursor()
     q = get_query('status.sql')
     res = cur.execute(q).fetchall()
@@ -85,4 +89,4 @@ if __name__ == "__main__":
     host_name = socket.getfqdn()
     ip = socket.gethostbyname(host_name)
 
-    app.run(host=ip, debug=True)
+    app.run(host=ip)
