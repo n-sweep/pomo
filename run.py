@@ -3,10 +3,9 @@ import json
 import logging
 import socket
 import sqlite3
-from flask import Flask, g
+from flask import Flask
 
 app = Flask(__name__)
-print()
 
 log_file = os.path.expanduser('~/.data/tomato.log')
 db_file = os.path.expanduser('~/.data/pomo.db')

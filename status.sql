@@ -12,6 +12,21 @@ WITH tbl AS (
         pomo
 ),
 
+pomos_today AS (
+    SELECT
+        COUNT(event_type) AS count
+    FROM tbl
+    WHERE
+        event_type = 'pomo'
+        -- only today's pomos
+        AND timestamp > DATETIME(JULIANDAY('now'), 'start of day')
+        -- exclude the most recent non-pause event
+        -- (ie don't count the current unfinished pomo)
+        AND timestamp < (SELECT MAX(timestamp) FROM tbl WHERE event_type NOT IN ('pause', 'unpause'))
+    ORDER BY
+        timestamp DESC
+),
+
 pause_ids AS (
     SELECT
         pomo_id,
@@ -81,8 +96,12 @@ SELECT DISTINCT
         'min', PRINTF('%02d', min),
         'sec', PRINTF('%02d', sec),
         'time_exceeded', exceeded
-    ) AS time_remaining
+    ) AS time_remaining,
+    (SELECT count FROM pomos_today) AS pomos_today
 FROM tbl p
-LEFT JOIN time_until_target t
-ON p.pomo_id = t.pomo_id
-WHERE p.pomo_id = (SELECT MAX(pomo_id) FROM tbl)
+LEFT JOIN
+    time_until_target t
+ON
+    p.pomo_id = t.pomo_id
+WHERE
+    p.pomo_id = (SELECT MAX(pomo_id) FROM tbl)
