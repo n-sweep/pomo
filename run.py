@@ -36,6 +36,7 @@ def insert_event(event):
 
     return '200'
 
+
 def status():
     db, cur = get_db()
     cur = db.cursor()
