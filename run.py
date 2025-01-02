@@ -68,6 +68,7 @@ def pause():
 
 
 @app.route('/unpause')
+@app.route('/resume')
 def unpause():
     return insert_event(('unpause', None))
 
